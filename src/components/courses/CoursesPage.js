@@ -1,54 +1,63 @@
-import { func } from 'prop-types';
-import React from 'react';
+
+import React, { Fragment } from 'react';
+import { Redirect } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import * as courseActions from '../../redux/actions/courseActions';
+import * as authorActions from '../../redux/actions/authorActions';
+import CourseList from './CourseList';
 
 class CoursesPage extends React.Component {
-    constructor(props) {
-        super(props);
+  state = {
+    redirectTpAddCoursePage: false,
+  };
 
-        this.state = {
-            course: {
-                title: ""
-            }
-        };
+  componentDidMount() {
+    if (this.props.courses.length === 0) {
+      this.props.actions.loadCourses().catch((error) => {
+        alert(error);
+      });
     }
 
-    handleChange = (event) => { //Arrow function inherit the binding context of their enclosing scope.
-        const course = { ...this.state.course, title: event.target.value }
-        this.setState({ course: course })
+    if (this.props.authors.length === 0) {
+      this.props.actions.loadAuthors().catch((error) => {});
     }
+  }
 
-    handleSubmit = (event) => {
-        event.preventDefault()
-        this.props.actions.createCourse(this.state.course)
-    }
-
-    render() {
-        return (
-            <form onSubmit={ this.handleSubmit}>
-                <h2>Courses</h2>
-                <h3>Add Courses</h3>
-                <input type="text" onChange={this.handleChange} value={this.state.course.title} />
-                <input type="submit" value="Save" />
-                {this.props.courses.map((course) => (
-                    <div key={course.title}>{ course.title}</div>
-                ))}
-            </form>
-        )
-    }
+  render() {
+    return (
+      <Fragment>
+        {this.state.redirectTpAddCoursePage && <Redirect to="/course" />}
+        <h2>Courses</h2>
+        <button
+          style={{ marginBottom: 20 }}
+          className="btn btn-primary add-course"
+          onClick={() => this.setState({ redirectTpAddCoursePage: true })}
+        > ADD Course</button>
+        <CourseList courses={this.props.courses} />
+      </Fragment>
+    );
+  }
 }
 
 function mapStateToProps(state) {
     return {
-        courses: state.courses
+        courses: state.authors.length === 0 ? [] : state.courses.map(course => {
+            return {
+                ...course,
+                authorName: state.authors.find(a => a.id === course.authorId).name
+            }
+        }),
+        authors: state.authors
     }
 }
 
 function mapDispatchToProps(dispatch) {
     return {
-        actions: bindActionCreators(courseActions, dispatch)
+        actions: { 
+            loadCourses: bindActionCreators(courseActions.loadCourses, dispatch),
+            loadAuthors: bindActionCreators(authorActions.loadAuthors, dispatch)
+       }
     }
 }
 
