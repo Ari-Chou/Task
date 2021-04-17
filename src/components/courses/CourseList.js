@@ -2,7 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 
 const CourseList = (props) => {
-    const {courses} = props
+    const {courses, onDeleteClick} = props
   return (
     <table className="table">
       <thead>
@@ -30,6 +30,9 @@ const CourseList = (props) => {
               </td>
               <td>{course.authorName}</td>
               <td>{course.category}</td>
+              <td>
+                <button className="btn btn-outline-danger" onClick={() => onDeleteClick(course)}>Delete</button>
+              </td>
             </tr>
           );
         })}
